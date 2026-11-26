@@ -55,13 +55,15 @@ kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-b
 .instr{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
 .instr .phase{font-weight:700}
 .instr .count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-.source{font-family:var(--serif);font-size:20px;line-height:1.9;padding:16px 18px;border:1px solid var(--line);border-radius:6px;background:var(--surface);user-select:none;-webkit-user-select:none}
-.source .w{padding:1px 2px;border-radius:3px}
+.source{font-family:var(--serif);font-size:20px;line-height:1.9;word-spacing:.3em;padding:16px 18px;border:1px solid var(--line);border-radius:6px;background:var(--surface);user-select:none;-webkit-user-select:none}
+/* 打っている間に文字の位置が動かないよう,太さや幅が変わる装飾は使わない(色・背景・影だけで示す) */
+.source .w{position:relative;padding:1px 2px;border-radius:3px}
 .source .w.done{color:var(--done)}
-.source .w.cur{background:var(--cur-bg);font-weight:700}
+.source .w.cur{background:var(--cur-bg);box-shadow:inset 0 -2px 0 var(--accent)}
 .source .c.typed{color:var(--done)}
 .source .c.next{background:var(--accent);color:var(--surface);border-radius:2px;box-shadow:0 0 0 2px var(--accent)}
-.source .c.sp{font-family:var(--mono);font-size:14px;font-weight:400;padding:0 3px;margin-left:2px;vertical-align:middle}
+/* 単語を打ち終えたときのカーソル.単語の後ろの空白に重ねて表示し,後ろの文字を押し出さない */
+.source .w.cur.full::after{content:"";position:absolute;left:calc(100% + 3px);top:50%;transform:translateY(-50%);width:.4em;height:1.05em;border-radius:2px;background:var(--accent);pointer-events:none}
 .typebox{font-family:var(--mono);font-size:22px;min-height:58px;padding:12px 14px;border:2px solid var(--line);border-radius:6px;background:var(--surface);cursor:text;white-space:pre;overflow-x:auto}
 .typebox:focus{border-color:var(--accent)}
 .typebox .ph{color:var(--muted);font-family:var(--sans);font-size:14px}
@@ -135,7 +137,7 @@ footer{margin-top:24px;font-size:12px;color:var(--muted)}
       <p id="rulesLead">練習を始める前に,次のルールを読んでください.</p>
       <ul>
         <li>お手本の英文のうち,色の付いた単語を入力します.次に打つ文字の位置にカーソルが移動します.</li>
-        <li>単語を打ち終えると,単語の後ろの <span style="font-family:var(--mono)">&#9251;</span> にカーソルが移動するので,<kbd>Space</kbd> キーを押して次の単語に進みます.最後の単語は <kbd>Space</kbd> か <kbd>Enter</kbd> で終わります.</li>
+        <li>単語を打ち終えると,単語の後ろの空白にカーソルが移動するので,<kbd>Space</kbd> キーを押して次の単語に進みます.最後の単語は <kbd>Space</kbd> か <kbd>Enter</kbd> で終わります.</li>
         <li><kbd>Space</kbd> を押すと,入力欄に打った文字は消え,次の単語の入力に移ります.打った内容は記録されているので,問題ありません.</li>
         <li><b>打ち間違えても直さず,そのまま次の文字を打ってください.</b><kbd>Backspace</kbd> は使えません.</li>
         <li>大文字とカンマ(,),ピリオド(.)も,表示どおりに入力してください.</li>
@@ -185,7 +187,7 @@ footer{margin-top:24px;font-size:12px;color:var(--muted)}
 /* =========================================================
  * 設定
  * ========================================================= */
-const APP_VERSION = "2026-11-26h";
+const APP_VERSION = "2026-11-26i";
 // 結果の送信先(Google Apps Script のウェブアプリURL).空にすると,参加者にCSVを保存して送ってもらう方式になる.
 const ENDPOINT = "https://script.google.com/macros/s/AKfycbzAzSShSnDR7yKTeqPC-w7hvXjNKTSef3apsCFiqY_R64K0mwnYwTfSnzWCU9oUUyqc/exec";
 // true: お手本の単語の文字数に届くまで,Space(最後の単語ではEnterも)を押しても次の単語に進まない.
@@ -280,15 +282,14 @@ function startRun(kind) {
   box.focus();
 }
 // 今の単語は1文字ずつ表示し,打った文字数の位置(次に打つ文字)にカーソルを置く.
-// 文字数ぶん打ち終えたら,Spaceを押す合図(␣)にカーソルを置く.打ち間違いかどうかは色で示さない.
+// 文字数ぶん打ち終えたら,単語の後ろの空白にカーソルを置く(CSSの .full::after).打ち間違いかどうかは色で示さない.
 function curWordHtml(w) {
   const n = run.buf.length;
-  const chars = [...w].map((ch, k) => `<span class="c ${k < n ? "typed" : k === n ? "next" : ""}">${esc(ch)}</span>`).join("");
-  return chars + (run.active && n >= w.length ? '<span class="c next sp" title="Space">&#9251;</span>' : "");
+  return [...w].map((ch, k) => `<span class="c ${k < n ? "typed" : k === n ? "next" : ""}">${esc(ch)}</span>`).join("");
 }
 function renderSource() {
   $("source").innerHTML = run.words.map((w, i) =>
-    i === run.idx && run.active ? `<span class="w cur">${curWordHtml(w)}</span>`
+    i === run.idx && run.active ? `<span class="w cur${run.buf.length >= w.length ? " full" : ""}">${curWordHtml(w)}</span>`
       : `<span class="w ${i < run.idx ? "done" : ""}">${esc(w)}</span>`).join(" ");
   $("count").textContent = `${Math.min(run.idx + 1, run.words.length)} / ${run.words.length} 単語`;
   const cur = $("source").querySelector(".cur");
