@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <title>英文タイピング実験</title>
 <style>
-/* layout: 1カラムの手順(説明→事前質問→練習→本番→結果). 本番は「お手本の英文」と「今打っている単語」を縦に並べる. */
+/* layout: 1カラムの手順(説明→事前質問→練習→本番→結果). 練習は「入力のルール」を読んでから始める. 本番は「お手本の英文」と「今打っている単語」を縦に並べる. */
 :root{
   --bg:#f6f7f8; --surface:#ffffff; --ink:#16191c; --muted:#5d656e; --line:#d5d9de;
   --accent:#1f4f7a; --done:#9aa3ab; --cur-bg:#e3ecf5; --ok:#1e6b3a; --warn:#8a5a00; --bad:#9b2c2c;
@@ -41,7 +41,6 @@ section.view{display:flex;flex-direction:column;gap:16px}
 .field>.q{font-weight:600}
 .opts{display:flex;flex-wrap:wrap;gap:6px 18px}
 .opts label{display:flex;align-items:center;gap:6px;cursor:pointer}
-input[type=text]{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);width:12em}
 .btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 button.btn{font:inherit;font-size:14px;font-weight:600;padding:8px 18px;border-radius:4px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer}
 button.btn.sec{background:transparent;color:var(--ink);border-color:var(--line)}
@@ -110,10 +109,19 @@ footer{margin-top:24px;font-size:12px;color:var(--muted)}
       <div class="field"><span class="q">大学の講義で出たレポート課題は,普段どちらで書きますか</span><div class="opts">
         <label><input type="radio" name="report_device" value="pc">PC</label>
         <label><input type="radio" name="report_device" value="smartphone">スマートフォン</label></div></div>
-      <div class="field"><span class="q">自分のタイピングの速さに自信はありますか</span><div class="opts">
-        <label><input type="radio" name="typing_confidence" value="slow">遅い</label>
-        <label><input type="radio" name="typing_confidence" value="medium">そこそこ</label>
-        <label><input type="radio" name="typing_confidence" value="fast">速い</label></div></div>
+      <div class="field"><span class="q">PCを使ってきた年数はどのくらいですか</span><div class="opts">
+        <label><input type="radio" name="pc_experience" value="lt1">今年から</label>
+        <label><input type="radio" name="pc_experience" value="lt3">3年未満</label>
+        <label><input type="radio" name="pc_experience" value="lt6">6年未満</label>
+        <label><input type="radio" name="pc_experience" value="ge6">それ以上</label></div></div>
+      <div class="field"><span class="q">英文のタイピングの速さはどのくらいですか</span><div class="opts">
+        <label><input type="radio" name="typing_confidence" value="slow">遅い(20wpm以下)</label>
+        <label><input type="radio" name="typing_confidence" value="medium">そこそこ(21〜49wpm)</label>
+        <label><input type="radio" name="typing_confidence" value="fast">速い(50wpm以上)</label></div>
+        <span class="note">wpmは1分間に打てる単語数です.学部の学生が使えるタイピング練習のブラウザアプリ「SOJO QuickQWERTY」で確認できます.測るのが面倒な方は,感覚で答えていただいて構いません.</span></div>
+      <div class="field"><span class="q">上の速さは,どのように答えましたか</span><div class="opts">
+        <label><input type="radio" name="typing_speed_basis" value="measured">実際に測った値</label>
+        <label><input type="radio" name="typing_speed_basis" value="feeling">感覚</label></div></div>
       <div class="btnrow" style="margin-top:12px"><button class="btn" id="toPractice" disabled>次へ</button>
         <span class="note" id="surveyMissing"></span></div>
     </div>
@@ -124,17 +132,20 @@ footer{margin-top:24px;font-size:12px;color:var(--muted)}
     <div class="steps" data-step="2"></div>
     <div class="panel" id="rules">
       <h2>入力のルール</h2>
+      <p id="rulesLead">練習を始める前に,次のルールを読んでください.</p>
       <ul>
-        <li>色の付いた単語を入力します.次に打つ文字が光ります.単語を打ち終えると <span style="font-family:var(--mono)">&#9251;</span> が光るので,<kbd>Space</kbd> キーを押して次の単語に進みます.最後の単語は <kbd>Space</kbd> か <kbd>Enter</kbd> で終わります.</li>
-        <li>お手本の単語と同じ文字数を入力するまで,<kbd>Space</kbd> を押しても次に進みません.文字を打ち漏らした場合は,そのまま続きを打ってください.</li>
+        <li>お手本の英文のうち,色の付いた単語を入力します.次に打つ文字の位置にカーソルが移動します.</li>
+        <li>単語を打ち終えると,単語の後ろの <span style="font-family:var(--mono)">&#9251;</span> にカーソルが移動するので,<kbd>Space</kbd> キーを押して次の単語に進みます.最後の単語は <kbd>Space</kbd> か <kbd>Enter</kbd> で終わります.</li>
+        <li><kbd>Space</kbd> を押すと,入力欄に打った文字は消え,次の単語の入力に移ります.打った内容は記録されているので,問題ありません.</li>
         <li><b>打ち間違えても直さず,そのまま次の文字を打ってください.</b><kbd>Backspace</kbd> は使えません.</li>
         <li>大文字とカンマ(,),ピリオド(.)も,表示どおりに入力してください.</li>
         <li>速さを競うものではありません.普段の文章を書くときのペースで入力してください.</li>
         <li>日本語入力はオフ(半角英数)にしてください.</li>
       </ul>
       <p class="note" id="practiceNote">まず短い文で練習します.練習の入力は記録しません.</p>
+      <div class="btnrow"><button class="btn" id="startPractice">ルールを読んだので練習を始める</button></div>
     </div>
-    <div class="panel" style="display:flex;flex-direction:column;gap:14px">
+    <div class="panel" id="taskPanel" style="display:flex;flex-direction:column;gap:14px">
       <div class="instr"><span class="phase" id="phase">練習</span><span class="count" id="count"></span></div>
       <div class="source" id="source" aria-label="入力する英文"></div>
       <div class="typebox" id="typebox" tabindex="0" role="textbox" aria-label="入力欄"></div>
@@ -174,7 +185,13 @@ footer{margin-top:24px;font-size:12px;color:var(--muted)}
 /* =========================================================
  * 設定
  * ========================================================= */
-const APP_VERSION = "2026-11-26f";
+const APP_VERSION = "2026-11-26h";
+// 結果の送信先(Google Apps Script のウェブアプリURL).空にすると,参加者にCSVを保存して送ってもらう方式になる.
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbzAzSShSnDR7yKTeqPC-w7hvXjNKTSef3apsCFiqY_R64K0mwnYwTfSnzWCU9oUUyqc/exec";
+// true: お手本の単語の文字数に届くまで,Space(最後の単語ではEnterも)を押しても次の単語に進まない.
+// false: いつでもSpaceで次に進む(実際のパスワード入力に近く,抜けた文字がそのまま記録される).
+//        単語の途中でSpaceを押したと思われる単語には split_suspect / split_tail の印を付ける.
+const REQUIRE_FULL_LENGTH = false;
 // 練習用(記録しない).アルファベット26文字をすべて含む英文.
 const PRACTICE_TEXT = "The quick brown fox jumps over the lazy dog.";
 // 本番用.Lewis Carroll "Alice's Adventures in Wonderland"(1865年,パブリックドメイン)第1章の冒頭.113単語.
@@ -185,15 +202,9 @@ const MAIN_TEXT = "Alice was beginning to get very tired of sitting by her siste
 /* 重み付きLevenshtein距離
  * 挿入・削除のコストは1.置換のコストは,QWERTY配列上の2つのキーの距離を9.0で割った値(最大1).
  * キーの座標は (行, 列) で,行のずれは考えない(q-p の距離が9になる).
- * 大文字と小文字,Shiftの有無だけが違う場合(a/A,1/! など)は,同じキーなので距離0になる.
- * その場合のコストを SAME_KEY_COST とする(0にすると大文字小文字の間違いが見えなくなるため,隣のキー1個分としておく).
+ * 大文字と小文字,Shiftの有無だけが違う場合(a/A,1/! など)は同じキーなので距離0になるため,
+ * そのコストを SAME_KEY_COST とする(0にすると大文字小文字の間違いが見えなくなるため,隣のキー1個分としておく).
  */
-// 結果の送信先(Google Apps Script のウェブアプリURL).空にすると,参加者にCSVを保存して送ってもらう方式になる.
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbzAzSShSnDR7yKTeqPC-w7hvXjNKTSef3apsCFiqY_R64K0mwnYwTfSnzWCU9oUUyqc/exec";
-
-// true: お手本の単語の文字数に届くまで,Space(最後の単語ではEnterも)を押しても次の単語に進まない.
-const REQUIRE_FULL_LENGTH = true;
-
 const MAX_KEY_DIST = 9.0;
 const SAME_KEY_COST = 1 / MAX_KEY_DIST;
 const KEY_ROWS = ["1234567890-=", "qwertyuiop[]", "asdfghjkl;'", "zxcvbnm,./"];
@@ -218,9 +229,10 @@ const touchOnly = matchMedia("(pointer: coarse)").matches && !matchMedia("(any-p
 $("touchBlock").hidden = !touchOnly;
 $("toSurvey").disabled = touchOnly;
 $("toSurvey").onclick = () => show("vSurvey");
+const SURVEY_KEYS = ["report_device", "pc_experience", "typing_confidence", "typing_speed_basis"];
 const radioVal = (n) => (document.querySelector(`input[name="${n}"]:checked`) || {}).value || null;
 function checkSurvey() {
-  const miss = ["report_device", "typing_confidence"].filter((k) => !radioVal(k)).length;
+  const miss = SURVEY_KEYS.filter((k) => !radioVal(k)).length;
   $("toPractice").disabled = miss > 0;
   $("surveyMissing").textContent = miss ? `未回答: ${miss}問` : "";
 }
@@ -229,9 +241,20 @@ checkSurvey();
 
 let participant = null;
 $("toPractice").onclick = () => {
-  participant = { report_device: radioVal("report_device"), typing_confidence: radioVal("typing_confidence") };
-  startRun("practice");
+  participant = {};
+  SURVEY_KEYS.forEach((k) => (participant[k] = radioVal(k)));
+  openPracticeRules();
 };
+
+/* ---------- 練習の前にルールを読む ---------- */
+function openPracticeRules() {
+  show("vTask");
+  run = null;
+  $("rules").hidden = false; $("rulesLead").hidden = false; $("practiceNote").hidden = false;
+  $("startPractice").hidden = false;
+  $("taskPanel").hidden = true;
+}
+$("startPractice").onclick = () => startRun("practice");
 
 /* ---------- 入力 ---------- */
 const box = $("typebox");
@@ -246,16 +269,18 @@ function startRun(kind) {
     results: [], keys: [], active: true,
   };
   show("vTask");
+  $("taskPanel").hidden = false;
+  $("startPractice").hidden = true;
+  $("rulesLead").hidden = true;
   $("phase").textContent = kind === "practice" ? "練習" : "本番";
   $("practiceNote").hidden = kind !== "practice";
-  $("rules").hidden = false;
   $("startMain").hidden = true; $("redoPractice").hidden = true;
   notice("");
   renderSource(); renderBox();
   box.focus();
 }
-// 今の単語は1文字ずつ表示し,打った文字数の位置(次に打つ文字)を光らせる.
-// 文字数ぶん打ち終えたら,Spaceを押す合図(␣)を光らせる.打ち間違いかどうかは色で示さない.
+// 今の単語は1文字ずつ表示し,打った文字数の位置(次に打つ文字)にカーソルを置く.
+// 文字数ぶん打ち終えたら,Spaceを押す合図(␣)にカーソルを置く.打ち間違いかどうかは色で示さない.
 function curWordHtml(w) {
   const n = run.buf.length;
   const chars = [...w].map((ch, k) => `<span class="c ${k < n ? "typed" : k === n ? "next" : ""}">${esc(ch)}</span>`).join("");
@@ -270,7 +295,7 @@ function renderSource() {
   if (cur) cur.scrollIntoView({ block: "nearest" });
 }
 function renderBox() {
-  if (!run.active) { box.innerHTML = ""; return; }
+  if (!run || !run.active) { box.innerHTML = ""; return; }
   box.innerHTML = run.buf ? esc(run.buf) + '<span class="cursor"></span>'
     : (run.idx === 0 && run.keys.length === 0 ? '<span class="ph">ここをクリックしてから入力を始めてください</span>' : '<span class="cursor"></span>');
 }
@@ -327,7 +352,16 @@ function endWord(tSpace) {
     first_key_ms: r1(run.wordFirst), space_ms: r1(tSpace),
     target_len: target.length, typed_len: typed.length,
     n_keys: run.wordKeys, backspace_attempts: run.wordBs, extra_spaces: run.wordExtraSpace, early_spaces: run.wordEarlySpace,
+    // 単語の途中でSpaceを押した疑い: 入力がお手本より短く,お手本の先頭部分と一致している
+    split_suspect: typed.length < target.length && target.startsWith(typed) ? 1 : 0,
+    split_tail: 0,
   });
+  // 直前の単語が split_suspect で,この入力が直前のお手本の残りと一致していれば,この行は「分かれた後半」とみなす
+  const n = run.results.length;
+  if (n >= 2) {
+    const prev = run.results[n - 2], cur = run.results[n - 1];
+    if (prev.split_suspect && typed.length > 0 && typed === prev.target.slice(prev.typed.length)) cur.split_tail = 1;
+  }
   run.lastSpace = tSpace; run.buf = ""; run.wordFirst = null; run.wordKeys = 0; run.wordBs = 0; run.wordExtraSpace = 0; run.wordEarlySpace = 0;
   run.idx++;
   if (run.idx >= run.words.length) { finishRun(); return; }
@@ -390,7 +424,7 @@ function weightedLevenshtein(a, b) {
   return D[m][n];
 }
 
-/* ---------- 結果とCSV ---------- */
+/* ---------- 結果と送信 ---------- */
 let mainRun = null;
 function showResult() {
   const R = mainRun.results;
@@ -446,15 +480,21 @@ function sessionInfo() {
   return {
     session_id: mainRun.sessionId,
     report_device: participant.report_device, typing_confidence: participant.typing_confidence,
+    pc_experience: participant.pc_experience, typing_speed_basis: participant.typing_speed_basis,
     text_id: TEXT_ID, started_at: mainRun.startedAt, app_version: APP_VERSION,
     platform: (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "",
     user_agent: navigator.userAgent,
   };
 }
+// 新しい列は必ず末尾に足す(スプレッドシートの既存の行と列の位置をそろえるため)
 const WORD_COLS = ["session_id", "report_device", "typing_confidence", "text_id", "word_index", "target", "typed", "correct",
   "lev", "wlev", "n_sub", "n_ins", "n_del", "word_time_ms", "gap_ms", "target_len", "typed_len", "n_keys", "backspace_attempts", "extra_spaces", "early_spaces",
-  "first_key_ms", "space_ms", "started_at", "app_version", "platform", "user_agent"];
+  "first_key_ms", "space_ms", "started_at", "app_version", "platform", "user_agent", "split_suspect", "split_tail",
+  "pc_experience", "typing_speed_basis"];
 const KEY_COLS = ["session_id", "seq", "t_ms", "word_index", "key", "code", "repeat", "caps"];
+function keysCsv(info) {
+  return toCsv(KEY_COLS, mainRun.keys.map((k, i) => ({ session_id: info.session_id, seq: i + 1, t_ms: r1(k.t), word_index: k.word_index + 1, key: k.key === " " ? "Space" : k.key, code: k.code, repeat: k.repeat, caps: k.caps })));
+}
 function download(name, text) {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
@@ -467,9 +507,6 @@ $("saveCsv").onclick = () => {
   download(`typing_${info.session_id}.csv`, toCsv(WORD_COLS, mainRun.results.map((r) => ({ ...info, ...r }))));
   $("saveMsg").textContent = "保存しました.このファイルを送ってください.";
 };
-function keysCsv(info) {
-  return toCsv(KEY_COLS, mainRun.keys.map((k, i) => ({ session_id: info.session_id, seq: i + 1, t_ms: r1(k.t), word_index: k.word_index + 1, key: k.key === " " ? "Space" : k.key, code: k.code, repeat: k.repeat, caps: k.caps })));
-}
 $("saveKeys").onclick = () => {
   const info = sessionInfo();
   download(`typing_keys_${info.session_id}.csv`, keysCsv(info));
